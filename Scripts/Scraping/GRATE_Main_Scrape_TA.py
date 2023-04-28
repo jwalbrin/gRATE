@@ -223,12 +223,7 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
                                  "PriceRange", "ReviewTags", 
                                  "ReviewTitles", "ReviewDates", 
                                  "ReviewRatings", "ReviewTexts"])
-    # Pickle
-    x = os.path.join(output_path,"LX_RestaurantData_TA_mn" + 
-                     str(min_reviews) + "_mx" + str(max_reviews) + "_" +
-                     str(strt_idx) + "_" + str(strt_idx + per_step - 1))
-    x
-                      
+    # Pickle          
     pickle_file = open(os.path.join(output_path,"LX_RestaurantData_TA_mn" + 
                        str(min_reviews) + "_mx" + str(max_reviews) + "_" +
                        str(strt_idx) + "_" + str(strt_idx + per_step - 1)),
