@@ -19,8 +19,8 @@ max_reviews = 50 # Max n most recent reviews per restaurant
 min_reviews = 10 # Min n most recent reviews per restaurant
 run_silent = 1 # 1 = don't show scraping
 
-start_idx = 250 # Inclusive first restaurant selection index 
-stop_idx = 500 # Exclusive last restaurant selection
+start_idx = 0 # Inclusive first restaurant selection index 
+stop_idx = 25 # Exclusive last restaurant selection
 per_step = 25 # Restaurants to scrape per step, such that:
              # abs(start_idx - stop_idx) % per_step = 0
 
@@ -47,6 +47,7 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
         
     # Initialize lists
     name_list = [None] * per_step
+    address_list = [None] * per_step
     skip_code_list = [0] * per_step
     link_list = [None] * per_step
     total_en_reviews_list = [0] * per_step
@@ -58,6 +59,8 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
     about_list = [None] * per_step
     cuisines_list = [None] * per_step
     special_diets_list = [None] * per_step
+    meals_list = [None] * per_step
+    features_list = [None] * per_step
     price_range_list = [None] * per_step
     tags_review_list = [None] * per_step
     rev_titles = [None] * per_step
@@ -80,10 +83,9 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
             first_idx = 0
 
         #--- Get restaurant details        
-        # Name, emax_reviews count, avg_rating
+        # Name, address, en_reviews, avg_rating
         name = driver.find_elements(By.XPATH,".//h1[@class = 'HjBfq']")   
-        try: name_list[list_idx] = name[0].text
-        except: pass 
+        address = driver.find_elements(By.XPATH,".//span[@class = 'yEWoV']") 
         en_review_labels = driver.find_elements(By.XPATH,".//label[@class = 'label container']")       
         avg_rating = driver.find_elements(By.XPATH,".//span[@class = 'ZDEqb']")
                  
@@ -123,10 +125,12 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
         tags_rev = driver.find_elements(By.XPATH,".//div[@class = 'ui_tagcloud_group']")
         
         #--- List assignments (use try as several values are typically missing) 
+        try: name_list[list_idx] = name[0].text
+        except: pass 
+        try: address_list[list_idx] = address[0].text
+        except: pass 
         try: avg_rating_list[list_idx] = float(avg_rating[0].text.replace(" ", ""))            
         except: pass
-        try: price_range_list[list_idx] = descriptive_details[descriptive_names.index("PRICE RANGE")]
-        except: pass 
         try: sub_rating_food_list[list_idx] = sub_rate_values[sub_rate_names.index("Food")]
         except: pass
         try: sub_rating_service_list[list_idx] = sub_rate_values[sub_rate_names.index("Service")]
@@ -135,27 +139,20 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
         except: pass
         try: sub_rating_atmosph_list[list_idx] = sub_rate_values[sub_rate_names.index("Atmosphere")]
         except: pass 
+        try: price_range_list[list_idx] = descriptive_details[descriptive_names.index("PRICE RANGE")]
+        except: pass 
         try: cuisines_list[list_idx] = descriptive_details[descriptive_names.index("CUISINES")].replace(", " , " | ").lower()
         except: pass
         try: special_diets_list[list_idx] = descriptive_details[descriptive_names.index("SPECIAL DIETS")].replace(", " , " | ").lower()
         except: pass
+        try: meals_list[list_idx] = descriptive_details[descriptive_names.index("MEALS")].replace(", " , " | ").lower()
+        except: pass
+        try: features_list[list_idx] = descriptive_details[descriptive_names.index("FEATURES")].replace(", " , " | ").lower()
+        except: pass
         try:
             tags_rev = tags_rev[0].text.replace("\n", " | ").lower()
             tags_review_list[list_idx] = tags_rev.replace("all reviews | ", "")
-        except: pass
-    
-        # # Skip reviews if: a) no avg_rating present (new, no details yet)
-        # # or b) total english reviews < max_reviews
-        # total_en_rev_count = 0
-        # try: total_en_rev_count = int([i.text for i in en_review_labels if "English" in i.text][0].split("(")[1][:-1])
-        # except: pass    
-        # total_en_reviews_list[list_idx] = total_en_rev_count 
-        # if avg_rating == []:
-        #    skip_code_list[list_idx] = 1
-        #     continue
-        # elif total_en_rev_count < max_reviews:
-        #     skip_code_list[list_idx] = 2
-        #     continue  
+        except: pass    
         
         # Skip reviews if: a) no avg_rating present (new, no details yet)
         # or b) total english reviews <= min_reviews
@@ -209,17 +206,21 @@ for stp_idx, strt_idx in enumerate(step_start_idx):
         rev_texts[list_idx] = rst_rev_texts        
 
     # Assign step data to df         
-    df = pd.DataFrame(zip(name_list, skip_code_list, link_list, total_en_reviews_list, 
+    df = pd.DataFrame(zip(name_list, skip_code_list, link_list, address_list,
+                          total_en_reviews_list, 
                           avg_rating_list, sub_rating_food_list, 
                           sub_rating_service_list, sub_rating_value_list, 
                           sub_rating_atmosph_list, about_list, 
-                          cuisines_list, special_diets_list, price_range_list, 
+                          cuisines_list, special_diets_list, meals_list,
+                          features_list, price_range_list, 
                           tags_review_list, rev_titles, rev_dates, 
                           rev_ratings, rev_texts), 
-                      columns = ["Name", "SkipCode","URL","TotalReviewsEN", "AvgRating",
+                      columns = ["Name", "SkipCode","URL","Address", 
+                                 "TotalReviewsEN", "AvgRating",
                                  "FoodRating","ServiceRating", 
                                  "ValueRating", "AtmosphereRating",
                                  "About", "Cuisines", "SpecialDiets",
+                                 "Meals", "Features",
                                  "PriceRange", "ReviewTags", 
                                  "ReviewTitles", "ReviewDates", 
                                  "ReviewRatings", "ReviewTexts"])
