@@ -19,8 +19,8 @@ max_reviews = 50 # Max n most recent reviews per restaurant
 min_reviews = 10 # Min n most recent reviews per restaurant
 run_silent = 1 # 1 = don't show scraping
 
-start_idx = 0 # Inclusive first restaurant selection index 
-stop_idx = 25 # Exclusive last restaurant selection
+start_idx = 250 # Inclusive first restaurant selection index 
+stop_idx = 500 # Exclusive last restaurant selection
 per_step = 25 # Restaurants to scrape per step, such that:
              # abs(start_idx - stop_idx) % per_step = 0
 
