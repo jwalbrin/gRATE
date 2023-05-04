@@ -64,11 +64,19 @@ df_check.Name.unique()
 df_branches = (df_check.groupby("Name", as_index = False, sort = False)
                ["URL"].count())
 df_branches = df_branches[df_branches.URL > 1]
-# Fix this!
-dup_idx = [i + " [" + str(j) + "]"
+# Works maybe
+dup_name = [ i + " [" + str(j) + "]"
            for i in list(df_branches.Name)
            for j, j_idx in enumerate(np.array(df_check.query("Name == @i").index))
            ]
+dup_idx = np.array([ j_idx
+           for i in list(df_branches.Name)
+           for j, j_idx in enumerate(np.array(df_check.query("Name == @i").index))
+           ])
+
+all_names = np.array(df_check.Name).tolist()
+for i_idx, i in enumerate(dup_name):
+    all_names[dup_idx[i_idx]] = i
 
 dup_idx = [ np.array(df_check.query("Name == @i").index) 
            for i in list(df_branches.Name)]
