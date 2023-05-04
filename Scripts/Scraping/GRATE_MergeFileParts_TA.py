@@ -55,4 +55,35 @@ print(len(df_rev_check.query("TotalReviewsEN >= 50")),
       len(df_rev_check.query("TotalReviewsEN >= 20")),
       len(df_rev_check.query("TotalReviewsEN >= 10")))
 
+# Unique checks
+df_check.URL.nunique()
+df_check.Name.nunique()
+df_check.Name.unique()
 
+# Suffix duplicate names
+df_branches = (df_check.groupby("Name", as_index = False, sort = False)
+               ["URL"].count())
+df_branches = df_branches[df_branches.URL > 1]
+# Fix this!
+dup_idx = [i + " [" + str(j) + "]"
+           for i in list(df_branches.Name)
+           for j, j_idx in enumerate(np.array(df_check.query("Name == @i").index))
+           ]
+
+dup_idx = [ np.array(df_check.query("Name == @i").index) 
+           for i in list(df_branches.Name)]
+
+
+
+df_test = df_check.copy().head(10)
+df_test.Name.apply(lambda x: x + "AA" if x in list(df_branches.Name) else x)
+
+df_test.Name.apply(lambda x: x + "AA")
+
+def dup_name(x,x2):
+    name = x
+    if x.Name in x2.Name:
+        
+        
+        
+        
