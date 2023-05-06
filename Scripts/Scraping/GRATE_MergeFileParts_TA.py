@@ -24,6 +24,26 @@ for pf in pf_names[1:]:
     df = pd.concat([df,df_temp])
 df.reset_index(inplace = True, drop = True)
 
+#--- Suffix duplicate names with numbers
+# Find duplicate names
+df_dups = (df.groupby("Name", as_index = False, sort = False)
+               ["URL"].count())
+df_dups = df_dups[df_dups.URL > 1]
+
+# Suffix duplicates with a number based on their ordering in df 
+# (e.g. 3rd suplicate will have [3])
+dup_names = list(df_dups.Name)
+dup_idx = [np.array(df.query("Name == @i").index) 
+                for i in dup_names]
+all_names = list(df.Name)
+for dn_i, dn in enumerate(dup_names):    
+    for di_i, di in enumerate(dup_idx[dn_i]):
+        all_names[di] = all_names[di] + " [" + str(di_i) + "]"        
+df.Name = all_names
+
+#--- Find missing names
+df_missing = df[df.Name.isnull()]
+
 # Pickle & csv
 output_name = (file_prefix + "Merged_" + str(np.min(pf_start_idx)) + "_" +
             str(np.max(pf_start_idx)))
@@ -60,37 +80,9 @@ df_check.URL.nunique()
 df_check.Name.nunique()
 df_check.Name.unique()
 
-# Suffix duplicate names
-df_branches = (df_check.groupby("Name", as_index = False, sort = False)
-               ["URL"].count())
-df_branches = df_branches[df_branches.URL > 1]
-# Works maybe
-dup_name = [ i + " [" + str(j) + "]"
-           for i in list(df_branches.Name)
-           for j, j_idx in enumerate(np.array(df_check.query("Name == @i").index))
-           ]
-dup_idx = np.array([ j_idx
-           for i in list(df_branches.Name)
-           for j, j_idx in enumerate(np.array(df_check.query("Name == @i").index))
-           ])
-
-all_names = np.array(df_check.Name).tolist()
-for i_idx, i in enumerate(dup_name):
-    all_names[dup_idx[i_idx]] = i
-
-dup_idx = [ np.array(df_check.query("Name == @i").index) 
-           for i in list(df_branches.Name)]
 
 
 
-df_test = df_check.copy().head(10)
-df_test.Name.apply(lambda x: x + "AA" if x in list(df_branches.Name) else x)
-
-df_test.Name.apply(lambda x: x + "AA")
-
-def dup_name(x,x2):
-    name = x
-    if x.Name in x2.Name:
         
         
         
